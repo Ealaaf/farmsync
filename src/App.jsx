@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import WeatherBackground from "./components/WeatherBackground";
 
 const LOCATIONS = [
   { label: "Kedah, MY", q: "Kedah,MY" },
@@ -67,6 +68,10 @@ export default function App() {
   // Audio UI state
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(50); // 0-100
+
+  // Background preference state
+  const [preferVideo, setPreferVideo] = useState(false);
+  const [enableDynamicBackground, setEnableDynamicBackground] = useState(true);
 
   // Web Audio refs
   const audioRef = useRef({
@@ -157,7 +162,7 @@ export default function App() {
     return { key: "neutral", label: "Neutral" };
   }, [data]);
 
-  // Theme class for CSS animated bg
+  // Theme class for CSS animated bg (fallback when dynamic background is disabled)
   const themeClass = useMemo(() => {
     if (ambience.key === "thunder") return "ios-thunder";
     if (ambience.key === "rain" || ambience.key === "heavy-rain") return "ios-rain";
@@ -166,6 +171,9 @@ export default function App() {
     if (ambience.key === "cloud") return "ios-clouds";
     return "ios-neutral";
   }, [ambience.key]);
+
+  // Giphy API key (optional, can use public beta key if not provided)
+  const giphyApiKey = import.meta.env.VITE_GIPHY_API_KEY || null;
 
   // Volume curve
   function setMasterVolume(v0to100) {
@@ -410,15 +418,26 @@ export default function App() {
   }, [ambience.key, isPlaying]);
 
   return (
-    <div className={`ios-bg ${themeClass}`} style={{ minHeight: "100vh" }}>
+    <div className={enableDynamicBackground ? "" : `ios-bg ${themeClass}`} style={{ minHeight: "100vh", position: "relative" }}>
+      {/* Dynamic Weather Background */}
+      {enableDynamicBackground && status === "ok" && ambience.key && (
+        <WeatherBackground
+          weatherKey={ambience.key}
+          weatherDescription={desc}
+          preferVideo={preferVideo}
+          giphyApiKey={giphyApiKey}
+        />
+      )}
+
       <div
         style={{
           minHeight: "100vh",
           padding: 18,
           fontFamily: "system-ui",
           color: "white",
-          background:
-            "linear-gradient(135deg, rgba(2,6,23,0.25), rgba(11,18,32,0.25) 45%, rgba(2,6,23,0.25))",
+          background: enableDynamicBackground
+            ? "transparent" // Transparent when using dynamic background (overlay is in WeatherBackground)
+            : "linear-gradient(135deg, rgba(2,6,23,0.25), rgba(11,18,32,0.25) 45%, rgba(2,6,23,0.25))",
           position: "relative",
           zIndex: 1,
         }}
@@ -428,10 +447,10 @@ export default function App() {
           <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
             <div>
               <div style={{ fontSize: 14, opacity: 0.8 }}>FarmSync • Weather Module</div>
-              <div style={{ fontSize: 22, fontWeight: 700 }}>iOS-Style Weather</div>
+              <div style={{ fontSize: 22, fontWeight: 700 }}>Weather</div>
             </div>
 
-            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
               <label style={{ fontSize: 12, opacity: 0.85 }}>Location</label>
               <select
                 value={selectedQ}
@@ -450,6 +469,19 @@ export default function App() {
                   </option>
                 ))}
               </select>
+
+              {/* Background Toggle */}
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <label style={{ fontSize: 12, opacity: 0.85, display: "flex", alignItems: "center", gap: 6 }}>
+                  <input
+                    type="checkbox"
+                    checked={enableDynamicBackground}
+                    onChange={(e) => setEnableDynamicBackground(e.target.checked)}
+                    style={{ cursor: "pointer" }}
+                  />
+                  Dynamic BG
+                </label>
+              </div>
             </div>
           </div>
 
@@ -519,9 +551,24 @@ export default function App() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                       <div>
                         <div style={{ fontSize: 14, opacity: 0.85 }}>Ambient Sound</div>
-                        <div style={{ fontSize: 18, fontWeight: 800 }}>Auto: {ambience.label}</div>
+                        <div style={{ fontSize: 18, fontWeight: 800 }}>{ambience.label}</div>
                         <div style={{ fontSize: 12, opacity: 0.75, marginTop: 4 }}>(Play requires a click due to browser audio rules)</div>
                       </div>
+
+                      {/* Background Preferences (shown when dynamic background is enabled) */}
+                      {enableDynamicBackground && (
+                        <div style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 12, opacity: 0.85 }}>
+                          <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                            <input
+                              type="checkbox"
+                              checked={preferVideo}
+                              onChange={(e) => setPreferVideo(e.target.checked)}
+                              style={{ cursor: "pointer" }}
+                            />
+                            Prefer Video
+                          </label>
+                        </div>
+                      )}
 
                       <button
                         onClick={handleTogglePlay}
@@ -568,7 +615,6 @@ export default function App() {
                 opacity: 0.9,
               }}
             >
-              Tip: Change location while playing — ambience should auto-switch to match the new weather.
             </div>
           </div>
         </div>
