@@ -1,0 +1,225 @@
+/* ================================
+   Base reset & layout
+================================ */
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.92);
+  background: #020617; /* fallback */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  display: block;
+}
+
+/* ================================
+   Typography
+================================ */
+
+a {
+  font-weight: 500;
+  color: #8ab4ff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #a5c8ff;
+}
+
+button {
+  border-radius: 10px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 0.95em;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* ================================
+   iOS-style animated glow
+================================ */
+
+@keyframes floatGradientA {
+  0%   { transform: translateX(0) scale(1); }
+  50%  { transform: translateX(-10px) scale(1.05); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes floatGradientB {
+  0%   { transform: translateX(0) scale(1); }
+  50%  { transform: translateX(12px) scale(1.06); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+.ios-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.ios-bg::before,
+.ios-bg::after {
+  content: "";
+  position: absolute;
+  inset: -22%;
+  filter: blur(34px);
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform, opacity;
+}
+
+.ios-bg::before {
+  animation: floatGradientA 18s ease-in-out infinite;
+}
+
+.ios-bg::after {
+  animation: floatGradientB 26s ease-in-out infinite;
+  opacity: 0.55;
+}
+
+/* ================================
+   Weather themes
+================================ */
+
+/* SUNNY */
+.ios-clear::before {
+  background: radial-gradient(circle at 28% 22%, rgba(56,189,248,0.65), transparent 62%);
+}
+.ios-clear::after {
+  background: radial-gradient(circle at 72% 32%, rgba(99,102,241,0.55), transparent 62%);
+}
+
+/* CLOUDY */
+.ios-clouds::before {
+  background: radial-gradient(circle at 28% 22%, rgba(148,163,184,0.55), transparent 62%);
+}
+.ios-clouds::after {
+  background: radial-gradient(circle at 72% 32%, rgba(59,130,246,0.35), transparent 62%);
+}
+
+/* RAIN */
+.ios-rain::before {
+  background: radial-gradient(circle at 26% 24%, rgba(56,189,248,0.85), transparent 64%);
+}
+.ios-rain::after {
+  background: radial-gradient(circle at 74% 34%, rgba(14,165,233,0.70), transparent 64%);
+}
+
+/* THUNDER */
+.ios-thunder::before {
+  background: radial-gradient(circle at 30% 26%, rgba(99,102,241,0.95), transparent 64%);
+}
+.ios-thunder::after {
+  background: radial-gradient(circle at 72% 34%, rgba(244,63,94,0.65), transparent 64%);
+}
+
+/* WIND */
+.ios-wind::before {
+  background: radial-gradient(circle at 30% 20%, rgba(34,197,94,0.40), transparent 62%);
+}
+.ios-wind::after {
+  background: radial-gradient(circle at 70% 30%, rgba(14,165,233,0.40), transparent 62%);
+}
+
+/* NEUTRAL */
+.ios-neutral::before {
+  background: radial-gradient(circle at 30% 20%, rgba(100,116,139,0.45), transparent 62%);
+}
+.ios-neutral::after {
+  background: radial-gradient(circle at 70% 30%, rgba(2,6,23,0.70), transparent 62%);
+}
+
+/* ================================
+   Rain streak overlay (NO FALLING GLOW)
+   - Streaks move via background-position
+   - Glow stays stable
+================================ */
+
+@keyframes rainStreaksMove {
+  0%   { background-position: 0 0, 0 0; }
+  100% { background-position: 0 220px, 0 0; }
+}
+
+/* Apply streak overlay ONLY on rain + thunder */
+.ios-bg.ios-rain::after,
+.ios-bg.ios-thunder::after {
+  /* Layer 1: streaks (animated by background-position)
+     Layer 2: your glow (static) */
+  background-image:
+    repeating-linear-gradient(
+      115deg,
+      rgba(255,255,255,0.14) 0px,
+      rgba(255,255,255,0.14) 1px,
+      transparent 1px,
+      transparent 18px
+    ),
+    radial-gradient(circle at 74% 34%, rgba(14,165,233,0.70), transparent 64%);
+
+  /* IMPORTANT: 2 backgrounds = 2 positions */
+  background-position: 0 0, 0 0;
+  background-size: auto, auto;
+
+  /* Keep your glow movement (X only) + streak motion */
+  animation:
+    floatGradientB 22s ease-in-out infinite,
+    rainStreaksMove 0.9s linear infinite;
+}
+
+/* Thunder: denser streaks + stronger glow, faster streak motion */
+.ios-bg.ios-thunder::after {
+  background-image:
+    repeating-linear-gradient(
+      115deg,
+      rgba(255,255,255,0.18) 0px,
+      rgba(255,255,255,0.18) 1px,
+      transparent 1px,
+      transparent 16px
+    ),
+    radial-gradient(circle at 72% 34%, rgba(244,63,94,0.65), transparent 64%);
+
+  animation:
+    floatGradientB 18s ease-in-out infinite,
+    rainStreaksMove 0.75s linear infinite;
+}
+
+
+/* ================================
+   Lightning flash (STRONG, brief)
+================================ */
+
+@keyframes lightningFlash {
+  0%, 88%, 100% { opacity: 0; }
+  89% { opacity: 0.55; }
+  90% { opacity: 0; }
+  91% { opacity: 0.35; }
+  92% { opacity: 0; }
+}
+
+.ios-bg.ios-thunder::before {
+  animation:
+    floatGradientA 16s ease-in-out infinite,
+    lightningFlash 4.5s linear infinite;
+}
+
+/* ================================
+   Accessibility
+================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .ios-bg::before,
+  .ios-bg::after {
+    animation: none;
+  }
+}
