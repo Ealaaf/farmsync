@@ -172,7 +172,7 @@ export default function App() {
     return "ios-neutral";
   }, [ambience.key]);
 
-  // Giphy API key (optional, can use public beta key if not provided)
+  // Giphy API key
   const giphyApiKey = import.meta.env.VITE_GIPHY_API_KEY || null;
 
   // Volume curve
@@ -407,14 +407,12 @@ export default function App() {
   useEffect(() => {
     ensureAudio();
     setMasterVolume(volume);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [volume]);
 
   // Auto-switch ambience when weather changes
   useEffect(() => {
     if (!isPlaying) return;
     startAmbience(ambience.key);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ambience.key, isPlaying]);
 
   return (

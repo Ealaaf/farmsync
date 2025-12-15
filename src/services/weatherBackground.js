@@ -2,9 +2,9 @@
  * Weather Background Service
  * 
  * Provides professional, consistent weather backgrounds using a tiered approach:
- * 1. Curated assets (local/CDN) - highest quality, most reliable
- * 2. Giphy API fallback - deterministic, professional queries
- * 3. Static image fallback - graceful degradation
+ * 1. Curated assets (local/CDN)
+ * 2. Giphy API fallback
+ * 3. Static image fallback
  */
 
 import {
